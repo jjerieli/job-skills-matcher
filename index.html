@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Job-Skill Matcher</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --sky:#E0F2FE;--sky-mid:#BAE6FD;
+  --blue:#0EA5E9;--blue-dark:#0369A1;
+  --mint:#D1FAE5;--green:#10B981;--green-dark:#065F46;
+  --peach:#FEF3C7;--amber:#F59E0B;--amber-dark:#92400E;
+  --lav:#EDE9FE;--violet:#7C3AED;--violet-dark:#4C1D95;
+  --bg:#F0F9FF;--white:#FFFFFF;
+  --ink:#0C1A2E;--ink-mid:#334155;--ink-light:#64748B;
+  --r:14px;--rs:8px;
+  --shadow:0 4px 24px rgba(14,165,233,.10);
+  --sc:0 2px 16px rgba(14,165,233,.08);
+}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;font-size:15px;line-height:1.65}
+
+header{background:linear-gradient(135deg,#0EA5E9 0%,#38BDF8 40%,#67E8F9 100%);padding:3.5rem 2rem 2.5rem;text-align:center;position:relative;overflow:hidden}
+header::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 70% 20%,rgba(255,255,255,.25) 0%,transparent 60%),radial-gradient(ellipse at 20% 80%,rgba(124,58,237,.18) 0%,transparent 50%)}
+.hi{position:relative;z-index:1;max-width:700px;margin:0 auto}
+.hbadge{display:inline-block;background:rgba(255,255,255,.30);color:#fff;font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;padding:4px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.45);margin-bottom:14px}
+header h1{font-family:'Syne',sans-serif;font-size:clamp(2rem,5vw,3rem);font-weight:800;color:#fff;line-height:1.1;margin-bottom:10px;text-shadow:0 2px 16px rgba(3,105,161,.25)}
+header p{color:rgba(255,255,255,.88);font-size:16px;font-weight:300;max-width:480px;margin:0 auto}
+
+.tab-bar{display:flex;justify-content:center;gap:8px;padding:1.5rem 1rem 0;flex-wrap:wrap}
+.tab-btn{font-family:'Syne',sans-serif;font-size:13px;font-weight:600;padding:9px 22px;border-radius:999px;border:2px solid transparent;cursor:pointer;transition:all .18s;background:var(--white);color:var(--ink-mid);box-shadow:var(--sc)}
+.tab-btn:hover{border-color:var(--blue);color:var(--blue)}
+.tab-btn.active{background:var(--blue);color:#fff;border-color:var(--blue);box-shadow:0 4px 18px rgba(14,165,233,.35)}
+
+.main{max-width:820px;margin:0 auto;padding:2rem 1.25rem 4rem}
+.panel{display:none;animation:fadeUp .25s ease}
+.panel.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+.slabel{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-light);margin-bottom:10px}
+.card{background:var(--white);border-radius:var(--r);box-shadow:var(--sc);padding:1.5rem;margin-bottom:16px}
+.ibox{background:var(--sky);border-left:4px solid var(--blue);border-radius:var(--rs);padding:12px 16px;font-size:14px;color:var(--blue-dark);margin-bottom:1.5rem}
+
+.chip-grid{display:flex;flex-wrap:wrap;gap:9px;margin-bottom:1.5rem}
+.chip{padding:7px 16px;border-radius:999px;font-size:13px;font-weight:500;border:2px solid transparent;cursor:pointer;transition:all .16s;user-select:none;font-family:'DM Sans',sans-serif}
+.chip-job{background:var(--sky);color:var(--blue-dark);border-color:var(--sky-mid)}
+.chip-job:hover:not(.active){border-color:var(--blue)}
+.chip-job.active{background:var(--blue);color:#fff;border-color:var(--blue);box-shadow:0 3px 12px rgba(14,165,233,.35)}
+
+.run-btn{width:100%;padding:14px;background:linear-gradient(135deg,var(--blue) 0%,#38BDF8 100%);color:#fff;font-family:'Syne',sans-serif;font-size:15px;font-weight:700;border:none;border-radius:var(--r);cursor:pointer;transition:all .18s;box-shadow:0 4px 20px rgba(14,165,233,.35);letter-spacing:.02em}
+.run-btn:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(14,165,233,.45)}
+.run-btn:active{transform:scale(.98)}
+.gbtn{background:linear-gradient(135deg,var(--green) 0%,#34D399 100%);box-shadow:0 4px 20px rgba(16,185,129,.30)}
+.gbtn:hover{box-shadow:0 8px 28px rgba(16,185,129,.40)}
+
+.rc{background:var(--white);border-radius:var(--r);box-shadow:var(--sc);padding:1.15rem 1.4rem;margin-bottom:12px;display:flex;gap:16px;align-items:flex-start;border-left:5px solid transparent;transition:transform .15s,box-shadow .15s}
+.rc:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+.rc.rk1{border-left-color:#F59E0B}.rc.rk2{border-left-color:#94A3B8}.rc.rk3{border-left-color:#F97316}.rc.rko{border-left-color:var(--blue)}
+.rbadge{min-width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:14px;font-weight:800;flex-shrink:0}
+.rb1{background:var(--peach);color:var(--amber-dark)}.rb2{background:#F1F5F9;color:#475569}.rb3{background:#FFF1EE;color:#C2410C}.rbo{background:var(--sky);color:var(--blue-dark)}
+.rname{font-family:'Lora',serif;font-size:17px;font-weight:600;color:var(--ink);margin-bottom:5px;line-height:1.3}
+.rexp{font-family:'Lora',serif;font-size:14px;font-style:italic;color:var(--ink-mid);line-height:1.75;margin-bottom:9px}
+.rexp strong{font-style:normal;font-weight:600;color:var(--ink)}
+.tbadge{display:inline-block;font-family:'DM Sans',sans-serif;font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:2px 9px;border-radius:999px;margin-left:8px;vertical-align:middle}
+.tsk{background:var(--mint);color:var(--green-dark)}.tct{background:var(--lav);color:var(--violet-dark)}
+.bwrap{background:#F1F5F9;border-radius:999px;height:7px;overflow:hidden}
+.bfill{height:7px;border-radius:999px;transition:width .7s cubic-bezier(.22,1,.36,1)}
+.bf1{background:linear-gradient(90deg,#F59E0B,#FCD34D)}.bf2{background:linear-gradient(90deg,#94A3B8,#CBD5E1)}.bf3{background:linear-gradient(90deg,#F97316,#FBA94C)}.bfo{background:linear-gradient(90deg,var(--blue),#38BDF8)}
+.slbl{font-size:11px;color:var(--ink-light);margin-top:4px}
+
+.selrow{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;align-items:center}
+select{flex:1;min-width:200px;padding:10px 14px;border-radius:var(--rs);border:2px solid var(--sky-mid);font-size:14px;font-family:'DM Sans',sans-serif;background:var(--white);color:var(--ink);cursor:pointer;transition:border-color .15s;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%230EA5E9' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+select:focus{outline:none;border-color:var(--blue)}
+.vslbl{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--ink-light);text-transform:uppercase;letter-spacing:.1em;align-self:center;flex-shrink:0}
+.src{background:var(--white);border-radius:var(--r);box-shadow:var(--sc);padding:1.25rem 1.5rem;margin-top:12px}
+.shl{font-family:'Lora',serif;font-size:16px;font-weight:600;margin-bottom:12px;color:var(--ink)}
+.ntag{display:inline-block;padding:4px 12px;border-radius:999px;font-size:13px;font-weight:500;margin:3px}
+.nj{background:var(--sky);color:var(--blue-dark)}.nsk{background:var(--mint);color:var(--green-dark)}.nc{background:var(--lav);color:var(--violet-dark)}
+.scnt{font-family:'Lora',serif;font-size:14px;color:var(--ink-mid);margin-top:12px;font-style:italic;line-height:1.6}
+
+.gstats{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.spill{flex:1;min-width:90px;background:var(--white);border-radius:var(--r);box-shadow:var(--sc);padding:12px 16px;text-align:center}
+.snum{display:block;font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--blue);line-height:1;margin-bottom:4px}
+.slb{font-size:11px;font-weight:500;color:var(--ink-light);text-transform:uppercase;letter-spacing:.06em}
+
+#kg-wrap{background:var(--white);border-radius:var(--r);box-shadow:var(--sc);padding:.75rem;margin-bottom:16px}
+canvas{display:block;width:100%;border-radius:var(--rs);cursor:default}
+.gleg{display:flex;gap:18px;flex-wrap:wrap;padding:8px 0 0}
+.li{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--ink-mid);font-weight:500}
+.ld{width:13px;height:13px;border-radius:50%;flex-shrink:0}
+.ghint{font-size:12px;color:var(--ink-light);text-align:center;margin-top:8px}
+
+.nde{background:var(--white);border-radius:var(--r);box-shadow:var(--sc);padding:1.1rem 1.4rem;margin-bottom:16px;font-size:13px;color:var(--ink-light);text-align:center;font-style:italic;border:2px dashed #D1E9F8}
+.ndc{background:var(--white);border-radius:var(--r);box-shadow:var(--sc);padding:1.25rem 1.4rem;margin-bottom:16px;border-left:5px solid var(--blue);animation:fadeUp .18s ease}
+.ndh{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.nddot{width:14px;height:14px;border-radius:50%;flex-shrink:0}
+.ndname{font-family:'Lora',serif;font-size:18px;font-weight:600;color:var(--ink)}
+.ndcl{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-light);margin-bottom:7px;margin-top:10px}
+.ndtags{display:flex;flex-wrap:wrap;gap:6px}
+.ndst{font-family:'Lora',serif;font-size:13px;color:var(--ink-mid);font-style:italic;margin-top:8px}
+
+.bkgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+@media(max-width:600px){.bkgrid{grid-template-columns:1fr}}
+.bkc{border-radius:var(--r);padding:1.1rem 1.2rem;border:2px solid transparent}
+.bkb{background:var(--sky);border-color:var(--sky-mid)}.bkg{background:var(--mint);border-color:#A7F3D0}.bkv{background:var(--lav);border-color:#C4B5FD}
+.bkico{font-size:22px;margin-bottom:6px}
+.bktit{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--ink);margin-bottom:6px}
+.bkls{font-family:'DM Sans',sans-serif;font-size:12px;color:var(--ink-mid);line-height:1.6}
+
+.rh{font-family:'Lora',serif;font-size:15px;font-weight:500;color:var(--ink-light);margin-bottom:14px;padding-top:4px;font-style:italic}
+.rh strong{color:var(--blue);font-style:normal}
+.empty{text-align:center;padding:2.5rem 1rem;color:var(--ink-light);font-size:15px}
+.eico{font-size:2.5rem;margin-bottom:8px}
+footer{text-align:center;padding:1.5rem;font-size:12px;color:var(--ink-light);border-top:1px solid #E2EEF8}
+footer a{color:var(--blue);text-decoration:none}
+@media(max-width:500px){header{padding:2.5rem 1rem 2rem}.main{padding:1.25rem .75rem 3rem}.selrow{flex-direction:column}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hi">
+    <div class="hbadge">AI in Business · WWU · Prof. Califf</div>
+    <h1>Job-Skill Matcher</h1>
+    <p>A knowledge graph that maps careers, skills, and certifications — then recommends what to learn next.</p>
+  </div>
+</header>
+
+<div class="tab-bar">
+  <button class="tab-btn active" id="tab-recommend">⚡ Recommendations</button>
+  <button class="tab-btn" id="tab-shared">🔗 Shared Connections</button>
+  <button class="tab-btn" id="tab-graph">🗺 Knowledge Graph</button>
+</div>
+
+<div class="main">
+
+  <div id="panel-recommend" class="panel active">
+    <div class="card">
+      <div class="slabel">Step 1 — Pick your target role(s)</div>
+      <div class="chip-grid" id="role-chips"></div>
+      <div class="ibox">Select one or more job titles you're aiming for, then click below. Every skill and certification is scored by how many of your target roles it connects to — higher score = stronger recommendation.</div>
+      <button class="run-btn" id="btn-recommend">✨ Find My Top Skills</button>
+    </div>
+    <div id="results"></div>
+  </div>
+
+  <div id="panel-shared" class="panel">
+    <div class="card">
+      <div class="slabel">Find shared connections between any two nodes</div>
+      <p style="font-family:'Lora',serif;font-size:14px;color:var(--ink-mid);margin-bottom:16px;line-height:1.7">Like a bridge-finder in a drug-disease graph — discover what two items have in common. The more shared connections, the stronger their structural relationship.</p>
+      <div class="selrow">
+        <select id="shared-a"></select>
+        <span class="vslbl">and</span>
+        <select id="shared-b"></select>
+      </div>
+      <button class="run-btn gbtn" id="btn-shared">🔍 Find Shared Connections</button>
+    </div>
+    <div id="shared-results"></div>
+  </div>
+
+  <div id="panel-graph" class="panel">
+
+    <div class="gstats">
+      <div class="spill"><span class="snum">21</span><span class="slb">Nodes</span></div>
+      <div class="spill"><span class="snum" id="stat-edges">—</span><span class="slb">Connections</span></div>
+      <div class="spill"><span class="snum">5</span><span class="slb">Job Titles</span></div>
+      <div class="spill"><span class="snum">9</span><span class="slb">Skills</span></div>
+      <div class="spill"><span class="snum">7</span><span class="slb">Certs</span></div>
+    </div>
+
+    <div class="card" style="padding:1rem 1rem .75rem;margin-bottom:12px">
+      <div class="slabel" style="margin-bottom:6px">Live knowledge graph</div>
+      <div id="kg-wrap"><canvas id="kg"></canvas></div>
+      <div class="gleg">
+        <div class="li"><div class="ld" style="background:#0EA5E9"></div>Job title</div>
+        <div class="li"><div class="ld" style="background:#10B981"></div>Skill / tool</div>
+        <div class="li"><div class="ld" style="background:#7C3AED"></div>Certification</div>
+      </div>
+      <div class="ghint">🖱 Hover any node to highlight its connections and see its details below</div>
+    </div>
+
+    <div id="node-detail-wrap">
+      <div class="nde">👆 Hover any node in the graph above to see its details here</div>
+    </div>
+
+    <div class="card" style="background:var(--sky);box-shadow:none;border:2px solid var(--sky-mid);margin-bottom:12px">
+      <strong style="font-family:'Syne',sans-serif;font-size:14px;color:var(--blue-dark)">How to read this graph</strong>
+      <p style="font-family:'Lora',serif;font-size:14px;color:var(--blue-dark);margin-top:6px;line-height:1.7">Each circle is a <strong>node</strong> — a job title, skill/tool, or certification. Each line is an <strong>edge</strong> representing a real-world relationship (e.g. "Data Analyst uses SQL"). When you hover a node, its neighbors gently shift outward to reveal the connections, while the hovered node is always drawn on top so its label stays readable. The scoring system counts how many of your target roles share an edge with each skill — the more roles a skill bridges, the higher it ranks.</p>
+    </div>
+
+    <div class="bkgrid">
+      <div class="bkc bkb"><div class="bkico">💼</div><div class="bktit">Job Titles (5)</div><div class="bkls">Data Analyst · Business Intelligence Analyst · Systems Analyst · IT Business Analyst · Product Analyst</div></div>
+      <div class="bkc bkg"><div class="bkico">🛠</div><div class="bktit">Skills &amp; Tools (9)</div><div class="bkls">SQL · Python · Excel · Tableau · Power BI · data visualization · communication · requirements gathering · dashboard building</div></div>
+      <div class="bkc bkv"><div class="bkico">🎓</div><div class="bktit">Certifications (7)</div><div class="bkls">Google Data Analytics · Microsoft Power BI · IBM Data Analyst · Tableau Desktop Specialist · AWS Cloud Practitioner · CBAP · Salesforce BA Cert</div></div>
+    </div>
+
+  </div>
+</div>
+
+<footer>Built for AI in Business · Western Washington University · Professor Christopher Califf &nbsp;|&nbsp;<a href="https://github.com" target="_blank">View on GitHub</a></footer>
+
+<script>
+/* ── DATA ── */
+var JOBS  = ["Data Analyst","Business Intelligence Analyst","Systems Analyst","IT Business Analyst","Product Analyst"];
+var SKILLS= ["SQL","Python","Excel","Tableau","Power BI","data visualization","communication","requirements gathering","dashboard building"];
+var CERTS = ["Google Data Analytics Certificate","Microsoft Power BI Certificate","IBM Data Analyst Certificate","Tableau Desktop Specialist","AWS Cloud Practitioner","Certified Business Analysis Professional","Salesforce Business Analyst Cert"];
+
+var NODE_TYPE = {};
+JOBS.forEach(function(n){NODE_TYPE[n]="job"});
+SKILLS.forEach(function(n){NODE_TYPE[n]="skill"});
+CERTS.forEach(function(n){NODE_TYPE[n]="cert"});
+
+var GRAPH = {
+  "Data Analyst":                       new Set(["SQL","Python","Excel","Tableau","data visualization","dashboard building","Google Data Analytics Certificate","IBM Data Analyst Certificate","Tableau Desktop Specialist"]),
+  "Business Intelligence Analyst":      new Set(["SQL","Power BI","Tableau","Excel","dashboard building","data visualization","Microsoft Power BI Certificate","Tableau Desktop Specialist","AWS Cloud Practitioner"]),
+  "Systems Analyst":                    new Set(["requirements gathering","communication","Excel","Python","SQL","Certified Business Analysis Professional","AWS Cloud Practitioner"]),
+  "IT Business Analyst":                new Set(["requirements gathering","communication","SQL","Excel","Google Data Analytics Certificate","Certified Business Analysis Professional","Salesforce Business Analyst Cert"]),
+  "Product Analyst":                    new Set(["SQL","Python","data visualization","communication","Tableau","Google Data Analytics Certificate","IBM Data Analyst Certificate","Salesforce Business Analyst Cert"]),
+  "SQL":                                new Set(["Data Analyst","Business Intelligence Analyst","Systems Analyst","IT Business Analyst","Product Analyst"]),
+  "Python":                             new Set(["Data Analyst","Systems Analyst","Product Analyst"]),
+  "Excel":                              new Set(["Data Analyst","Business Intelligence Analyst","Systems Analyst","IT Business Analyst"]),
+  "Tableau":                            new Set(["Data Analyst","Business Intelligence Analyst","Product Analyst","Tableau Desktop Specialist"]),
+  "Power BI":                           new Set(["Business Intelligence Analyst","Microsoft Power BI Certificate"]),
+  "data visualization":                 new Set(["Data Analyst","Business Intelligence Analyst","Product Analyst"]),
+  "communication":                      new Set(["Systems Analyst","IT Business Analyst","Product Analyst"]),
+  "requirements gathering":             new Set(["Systems Analyst","IT Business Analyst"]),
+  "dashboard building":                 new Set(["Data Analyst","Business Intelligence Analyst"]),
+  "Google Data Analytics Certificate":  new Set(["Data Analyst","IT Business Analyst","Product Analyst"]),
+  "Microsoft Power BI Certificate":     new Set(["Business Intelligence Analyst","Power BI"]),
+  "IBM Data Analyst Certificate":       new Set(["Data Analyst","Product Analyst","Python","SQL"]),
+  "Tableau Desktop Specialist":         new Set(["Data Analyst","Business Intelligence Analyst","Tableau"]),
+  "AWS Cloud Practitioner":             new Set(["Business Intelligence Analyst","Systems Analyst"]),
+  "Certified Business Analysis Professional": new Set(["Systems Analyst","IT Business Analyst","requirements gathering"]),
+  "Salesforce Business Analyst Cert":   new Set(["IT Business Analyst","Product Analyst","communication"])
+};
+
+var ALL_NODES = JOBS.concat(SKILLS).concat(CERTS);
+
+/* count edges */
+var EDGE_COUNT = 0;
+ALL_NODES.forEach(function(a,ai){
+  (GRAPH[a]||new Set()).forEach(function(b){ if(ALL_NODES.indexOf(b)>ai) EDGE_COUNT++; });
+});
+
+/* ── HELPERS ── */
+function typeLabel(n){ return NODE_TYPE[n]==="job"?"Job Title":NODE_TYPE[n]==="skill"?"Skill / Tool":"Certification"; }
+function typeClass(n){ return NODE_TYPE[n]==="skill"?"tsk":"tct"; }
+function tagClass(n) { return NODE_TYPE[n]==="job"?"nj":NODE_TYPE[n]==="skill"?"nsk":"nc"; }
+function rankCls(i){
+  var badges=["rb1","rb2","rb3","rbo"], cards=["rk1","rk2","rk3","rko"], bars=["bf1","bf2","bf3","bfo"];
+  var x=Math.min(i,3);
+  return {badge:badges[x],card:cards[x],bar:bars[x]};
+}
+
+/* ── TABS ── */
+function switchTab(id){
+  document.querySelectorAll(".tab-btn").forEach(function(b){b.classList.remove("active")});
+  document.getElementById("tab-"+id).classList.add("active");
+  document.querySelectorAll(".panel").forEach(function(p){p.classList.remove("active")});
+  document.getElementById("panel-"+id).classList.add("active");
+  if(id==="graph"){
+    document.getElementById("stat-edges").textContent=EDGE_COUNT;
+    setTimeout(initGraph,60);
+  }
+}
+document.getElementById("tab-recommend").addEventListener("click",function(){switchTab("recommend")});
+document.getElementById("tab-shared").addEventListener("click",function(){switchTab("shared")});
+document.getElementById("tab-graph").addEventListener("click",function(){switchTab("graph")});
+
+/* ── CHIPS ── */
+var selectedRoles = new Set();
+function buildChips(){
+  var el=document.getElementById("role-chips");
+  JOBS.forEach(function(j){
+    var c=document.createElement("div");
+    c.className="chip chip-job"; c.textContent=j;
+    c.addEventListener("click",function(){
+      if(selectedRoles.has(j)){selectedRoles.delete(j);c.classList.remove("active");}
+      else{selectedRoles.add(j);c.classList.add("active");}
+    });
+    el.appendChild(c);
+  });
+}
+
+/* ── SELECTS ── */
+function buildSelects(){
+  var a=document.getElementById("shared-a"),b=document.getElementById("shared-b");
+  ALL_NODES.forEach(function(n){
+    [a,b].forEach(function(sel){
+      var o=document.createElement("option"); o.value=o.textContent=n; sel.appendChild(o);
+    });
+  });
+  b.selectedIndex=5;
+}
+
+/* ── SCORING ── */
+function scoreNodes(roles){
+  var scores={};
+  roles.forEach(function(role){
+    (GRAPH[role]||new Set()).forEach(function(nb){
+      if(NODE_TYPE[nb]==="job") return;
+      if(!scores[nb]) scores[nb]={score:0,roles:[]};
+      scores[nb].score++; scores[nb].roles.push(role);
+    });
+  });
+  return Object.entries(scores).sort(function(a,b){return b[1].score-a[1].score});
+}
+function buildExpl(node,roles){
+  if(roles.length===1) return "<strong>"+node+"</strong> is recommended because it connects to <strong>"+roles[0]+"</strong>.";
+  if(roles.length===2) return "<strong>"+node+"</strong> is recommended because it connects to <strong>"+roles[0]+"</strong> and <strong>"+roles[1]+"</strong>.";
+  var last=roles[roles.length-1];
+  var rest=roles.slice(0,-1).map(function(r){return "<strong>"+r+"</strong>"}).join(", ");
+  return "<strong>"+node+"</strong> is recommended because it connects to "+rest+", and <strong>"+last+"</strong>.";
+}
+
+/* ── RECOMMENDATIONS ── */
+function runRecommend(){
+  var roles=Array.from(selectedRoles), el=document.getElementById("results");
+  if(!roles.length){el.innerHTML='<div class="empty"><div class="eico">☝️</div>Please select at least one role above.</div>';return;}
+  var ranked=scoreNodes(roles);
+  if(!ranked.length){el.innerHTML='<div class="empty">No results found.</div>';return;}
+  var maxScore=ranked[0][1].score;
+  el.innerHTML='<div class="rh">Top recommendations for: '+roles.map(function(r){return "<strong>"+r+"</strong>"}).join(", ")+'</div>';
+  ranked.forEach(function(entry,i){
+    var node=entry[0], score=entry[1].score, matched=entry[1].roles;
+    var cls=rankCls(i), pct=Math.round((score/maxScore)*100);
+    var div=document.createElement("div"); div.className="rc "+cls.card;
+    div.innerHTML='<div class="rbadge '+cls.badge+'">#'+(i+1)+'</div>'
+      +'<div style="flex:1">'
+      +'<div class="rname">'+node+'<span class="tbadge '+typeClass(node)+'">'+typeLabel(node)+'</span></div>'
+      +'<div class="rexp">'+buildExpl(node,matched)+'</div>'
+      +'<div class="bwrap"><div class="bfill '+cls.bar+'" style="width:'+pct+'%"></div></div>'
+      +'<div class="slbl">Strength: '+score+' of '+roles.length+' target role'+(roles.length>1?"s":"")+" connected</div>"
+      +'</div>';
+    el.appendChild(div);
+  });
+}
+document.getElementById("btn-recommend").addEventListener("click",runRecommend);
+
+/* ── SHARED ── */
+function runShared(){
+  var a=document.getElementById("shared-a").value, b=document.getElementById("shared-b").value;
+  var el=document.getElementById("shared-results");
+  if(a===b){el.innerHTML='<div class="src"><p style="color:var(--ink-light);font-size:14px">Please choose two <em>different</em> nodes.</p></div>';return;}
+  var shared=Array.from(GRAPH[a]||new Set()).filter(function(x){return (GRAPH[b]||new Set()).has(x)});
+  if(!shared.length){
+    el.innerHTML='<div class="src"><div class="shl">No shared connections found</div><p style="font-family:\'Lora\',serif;font-size:14px;color:var(--ink-light)"><strong>'+a+'</strong> and <strong>'+b+'</strong> do not share any direct connections.</p></div>';
+    return;
+  }
+  el.innerHTML='<div class="src">'
+    +'<div class="shl">Shared connections: <span style="color:var(--blue)">'+a+'</span> &amp; <span style="color:var(--violet)">'+b+'</span></div>'
+    +'<div style="margin-bottom:12px">'+shared.map(function(s){return '<span class="ntag '+tagClass(s)+'">'+s+'</span>'}).join("")+'</div>'
+    +'<div class="scnt"><strong>'+shared.length+'</strong> shared connection'+(shared.length>1?"s":"")+" found. The more shared connections, the stronger the structural relationship between these two nodes.</div>"
+    +'</div>';
+}
+document.getElementById("btn-shared").addEventListener("click",runShared);
+
+/* ─────────────────────────────────────────────
+   KNOWLEDGE GRAPH — calm physics
+   Neighbors push AWAY from hovered node (outward)
+   capped at MAX_PULL px from their rest position.
+   Hovered node is always drawn LAST (on top).
+   Sizes never change — labels always readable.
+───────────────────────────────────────────── */
+var NFILL   = {job:"#E0F2FE",skill:"#D1FAE5",cert:"#EDE9FE"};
+var NSTROKE = {job:"#0EA5E9",skill:"#10B981",cert:"#7C3AED"};
+var NTEXT   = {job:"#0369A1",skill:"#065F46",cert:"#4C1D95"};
+var BASE_R  = {job:26,skill:20,cert:20};
+var MAX_PULL = 26;
+var SPRING   = 0.11;
+var DAMP     = 0.66;
+
+var nodes=[], rafId=null, hoveredNode=null, CW=0, CH=0;
+
+function nR(name){return BASE_R[NODE_TYPE[name]]||20;}
+
+function initGraph(){
+  var canvas=document.getElementById("kg");
+  var wrap=document.getElementById("kg-wrap");
+  CW=wrap.clientWidth-24;
+  CH=Math.max(440,Math.min(580,CW*0.72));
+  var dpr=window.devicePixelRatio||1;
+  canvas.width=CW*dpr; canvas.height=CH*dpr;
+  canvas.style.width=CW+"px"; canvas.style.height=CH+"px";
+  canvas.getContext("2d").scale(dpr,dpr);
+
+  var cx=CW/2, cy=CH/2;
+  var rJob=Math.min(CW,CH)*0.22;
+  var rOut=Math.min(CW,CH)*0.44;
+  var outer=SKILLS.concat(CERTS);
+
+  nodes=ALL_NODES.map(function(name){
+    var rx,ry;
+    var ji=JOBS.indexOf(name);
+    if(ji>=0){
+      var a=-Math.PI/2+(2*Math.PI/JOBS.length)*ji;
+      rx=cx+rJob*Math.cos(a); ry=cy+rJob*Math.sin(a);
+    } else {
+      var oi=outer.indexOf(name);
+      var a2=-Math.PI/2+(2*Math.PI/outer.length)*oi;
+      rx=cx+rOut*Math.cos(a2); ry=cy+rOut*Math.sin(a2);
+    }
+    return {name:name,x:rx,y:ry,rx:rx,ry:ry,vx:0,vy:0};
+  });
+
+  canvas.onmousemove=function(e){
+    var rect=canvas.getBoundingClientRect();
+    var mx=e.clientX-rect.left, my=e.clientY-rect.top;
+    var h=null;
+    for(var i=nodes.length-1;i>=0;i--){
+      var n=nodes[i];
+      if(Math.hypot(mx-n.x,my-n.y)<nR(n.name)+5){h=n.name;break;}
+    }
+    if(h!==hoveredNode){hoveredNode=h;updateDetail(h);}
+    canvas.style.cursor=h?"pointer":"default";
+  };
+  canvas.onmouseleave=function(){
+    hoveredNode=null;
+    document.getElementById("node-detail-wrap").innerHTML='<div class="nde">👆 Hover any node in the graph above to see its details here</div>';
+  };
+
+  if(rafId) cancelAnimationFrame(rafId);
+  animate();
+}
+
+function updateDetail(name){
+  var wrap=document.getElementById("node-detail-wrap");
+  if(!name){wrap.innerHTML='<div class="nde">👆 Hover any node in the graph above to see its details here</div>';return;}
+  var type=NODE_TYPE[name];
+  var nbrs=Array.from(GRAPH[name]||new Set());
+  var jobs=nbrs.filter(function(n){return NODE_TYPE[n]==="job"});
+  var skls=nbrs.filter(function(n){return NODE_TYPE[n]==="skill"});
+  var cts=nbrs.filter(function(n){return NODE_TYPE[n]==="cert"});
+  var col=NSTROKE[type];
+  var tc=tagClass(name);
+  var secs="";
+  if(jobs.length) secs+='<div class="ndcl">Connected Job Titles</div><div class="ndtags">'+jobs.map(function(j){return '<span class="ntag nj">'+j+'</span>'}).join("")+'</div>';
+  if(skls.length) secs+='<div class="ndcl">Connected Skills</div><div class="ndtags">'+skls.map(function(s){return '<span class="ntag nsk">'+s+'</span>'}).join("")+'</div>';
+  if(cts.length)  secs+='<div class="ndcl">Connected Certifications</div><div class="ndtags">'+cts.map(function(c){return '<span class="ntag nc">'+c+'</span>'}).join("")+'</div>';
+  wrap.innerHTML='<div class="ndc" style="border-left-color:'+col+'">'
+    +'<div class="ndh"><div class="nddot" style="background:'+col+'"></div>'
+    +'<span class="ndname">'+name+'</span>'
+    +'<span class="ntag '+tc+'" style="font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase">'+typeLabel(name)+'</span></div>'
+    +secs
+    +'<div class="ndst">'+nbrs.length+' direct connection'+(nbrs.length!==1?"s":"")+" in the graph.</div>"
+    +'</div>';
+}
+
+function animate(){
+  rafId=requestAnimationFrame(animate);
+  var canvas=document.getElementById("kg");
+  if(!canvas||!canvas.getContext) return;
+  var ctx=canvas.getContext("2d");
+  ctx.clearRect(0,0,CW,CH);
+
+  /* physics */
+  nodes.forEach(function(n){
+    var isHov=n.name===hoveredNode;
+    var isNb=hoveredNode&&!isHov&&(GRAPH[hoveredNode]||new Set()).has(n.name);
+    if(isHov){
+      /* snap hovered node firmly back to its rest spot */
+      n.vx+=(n.rx-n.x)*0.35; n.vy+=(n.ry-n.y)*0.35;
+      n.vx*=0.45; n.vy*=0.45;
+    } else if(isNb){
+      /* push neighbor outward from hovered node's rest position, max MAX_PULL */
+      var hov=null;
+      for(var i=0;i<nodes.length;i++){if(nodes[i].name===hoveredNode){hov=nodes[i];break;}}
+      if(hov){
+        var dx=n.rx-hov.rx, dy=n.ry-hov.ry, dist=Math.hypot(dx,dy)||1;
+        var tx=n.rx+(dx/dist)*MAX_PULL, ty=n.ry+(dy/dist)*MAX_PULL;
+        n.vx+=(tx-n.x)*0.13; n.vy+=(ty-n.y)*0.13;
+        n.vx*=DAMP; n.vy*=DAMP;
+      }
+    } else {
+      n.vx+=(n.rx-n.x)*SPRING; n.vy+=(n.ry-n.y)*SPRING;
+      n.vx*=DAMP; n.vy*=DAMP;
+    }
+    n.x+=n.vx; n.y+=n.vy;
+  });
+
+  /* edges */
+  ALL_NODES.forEach(function(a,ai){
+    (GRAPH[a]||new Set()).forEach(function(b){
+      if(ALL_NODES.indexOf(b)<=ai) return;
+      var na=null,nb2=null;
+      for(var i=0;i<nodes.length;i++){
+        if(nodes[i].name===a) na=nodes[i];
+        if(nodes[i].name===b) nb2=nodes[i];
+      }
+      if(!na||!nb2) return;
+      var isLit=hoveredNode&&(a===hoveredNode||b===hoveredNode);
+      var dim=hoveredNode&&!isLit;
+      ctx.beginPath(); ctx.moveTo(na.x,na.y); ctx.lineTo(nb2.x,nb2.y);
+      ctx.globalAlpha=isLit?0.88:dim?0.07:0.20;
+      ctx.strokeStyle=isLit?(NSTROKE[NODE_TYPE[a]]||"#0EA5E9"):"rgba(100,150,200,1)";
+      ctx.lineWidth=isLit?2.2:0.9;
+      ctx.stroke(); ctx.globalAlpha=1;
+    });
+  });
+
+  /* draw non-hovered nodes first, hovered node last */
+  nodes.forEach(function(n){ if(n.name!==hoveredNode) drawNode(ctx,n); });
+  if(hoveredNode){
+    var hn=null;
+    for(var i=0;i<nodes.length;i++){if(nodes[i].name===hoveredNode){hn=nodes[i];break;}}
+    if(hn) drawNode(ctx,hn);
+  }
+}
+
+function drawNode(ctx,n){
+  var type=NODE_TYPE[n.name]||"skill";
+  var r=nR(n.name);
+  var isHov=n.name===hoveredNode;
+  var isNb=hoveredNode&&!isHov&&(GRAPH[hoveredNode]||new Set()).has(n.name);
+  var dim=hoveredNode&&!isHov&&!isNb;
+
+  /* glow for hovered */
+  if(isHov){
+    var grad=ctx.createRadialGradient(n.x,n.y,r,n.x,n.y,r+16);
+    grad.addColorStop(0,NSTROKE[type]+"44");
+    grad.addColorStop(1,NSTROKE[type]+"00");
+    ctx.beginPath(); ctx.arc(n.x,n.y,r+16,0,2*Math.PI);
+    ctx.fillStyle=grad; ctx.globalAlpha=1; ctx.fill();
+  }
+
+  ctx.globalAlpha=dim?0.16:1;
+  ctx.beginPath(); ctx.arc(n.x,n.y,r,0,2*Math.PI);
+  ctx.fillStyle=NFILL[type]; ctx.fill();
+  ctx.strokeStyle=NSTROKE[type];
+  ctx.lineWidth=isHov?3.2:isNb?2.2:1.5; ctx.stroke();
+
+  /* label — fixed size, no scaling */
+  var fs=type==="job"?10.5:9.5;
+  ctx.font=(type==="job"?"600 ":"400 ")+fs+"px 'DM Sans',sans-serif";
+  ctx.fillStyle=NTEXT[type];
+  ctx.textAlign="center"; ctx.textBaseline="middle";
+  var maxW=type==="job"?76:58;
+  var words=n.name.split(" "), line="", lines=[];
+  words.forEach(function(w){
+    var t=line?line+" "+w:w;
+    if(ctx.measureText(t).width>maxW&&line){lines.push(line);line=w;}else line=t;
+  });
+  lines.push(line);
+  var lh=fs+2, sy=n.y-(lines.length-1)*lh/2;
+  lines.forEach(function(l,i){ctx.fillText(l,n.x,sy+i*lh);});
+  ctx.globalAlpha=1;
+}
+
+/* ── INIT ── */
+buildChips();
+buildSelects();
+</script>
+</body>
+</html>
